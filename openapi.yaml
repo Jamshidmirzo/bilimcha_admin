@@ -1,0 +1,168 @@
+openapi: 3.0.3
+info:
+  title: Bilimcha Media API
+  version: "1.0.0"
+  description: API для видео, shorts, прокси стриминга, реакций и комментариев
+servers:
+  - url: http://localhost:5050
+
+paths:
+  /api/shorts:
+    get:
+      summary: Список шортов
+      responses:
+        '200':
+          description: Список шортов
+    post:
+      summary: Создать short (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Media'
+      responses:
+        '201':
+          description: Short создан
+
+  /api/videos:
+    get:
+      summary: Список обычных видео
+      responses:
+        '200':
+          description: Список видео
+    post:
+      summary: Создать видео (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Media'
+      responses:
+        '201':
+          description: Видео создано
+
+  /stream/{youtubeId}:
+    get:
+      summary: Прокси стрим (поддержка Range)
+      parameters:
+        - name: youtubeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Видео стрим
+
+  /api/media/{mid}/meta:
+    get:
+      summary: Метаданные лайки, дизлайки, реакция пользователя, кол-во комментариев
+      parameters:
+        - name: mid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Метаданные
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  likes:
+                    type: integer
+                  dislikes:
+                    type: integer
+                  yourReaction:
+                    type: string
+                    nullable: true
+                  commentsCount:
+                    type: integer
+
+  /api/media/{mid}/react:
+    post:
+      summary: Поставить реакцию (лайк/дизлайк/сброс)
+      parameters:
+        - name: mid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [like, dislike, clear]
+      responses:
+        '200':
+          description: Реакция установлена
+
+  /api/media/{mid}/comments:
+    get:
+      summary: Список комментариев
+      parameters:
+        - name: mid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Список комментариев
+    post:
+      summary: Добавить комментарий
+      parameters:
+        - name: mid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                text:
+                  type: string
+      responses:
+        '201':
+          description: Комментарий добавлен
+
+components:
+  schemas:
+    Media:
+      type: object
+      properties:
+        id:
+          type: integer
+        youtubeId:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        duration:
+          type: integer
+        thumbnailUrl:
+          type: string
+        isShort:
+          type: boolean
+        isPublished:
+          type: boolean
+        playbackUrl:
+          type: string
